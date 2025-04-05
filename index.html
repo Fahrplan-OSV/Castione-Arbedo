@@ -213,30 +213,6 @@
             });
           }
 
-          // Korrigierte Abfahrtszeiten für die Rückfahrten nach Bellinzona
-          if (h === 8 && m === 34) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'RE1',
-              destination: 'Biasca – Bodio TI – Lavorgo – Airolo',
-              notice: ''
-            });
-          }
-
-          if (h === 9 && m === 22) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'RE1',
-              destination: 'Biasca – Bodio TI – Lavorgo – Airolo',
-              notice: ''
-            });
-          }
-        }
-
         // Filtere nur gültige Verbindungen
         const now = new Date();
         return departures.filter(dep => {
