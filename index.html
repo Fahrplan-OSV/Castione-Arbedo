@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bahnhof Castione-Arbedo – Abfahrten</title>
+  <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #00205B;
+      color: white;
+      font-family: 'Saira Condensed', sans-serif;
+      margin: 0;
+      padding: 1rem;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .clock {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1.3rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+    }
+    th {
+      background-color: #004494;
+    }
+    tr:nth-child(even) {
+      background-color: #001C45;
+    }
+    .zugart {
+      font-weight: bold;
+      width: 6rem;
+    }
+    .ziel {
+      width: 45%;
+    }
+    .hinweis {
+      width: 20%;
+      font-style: italic;
+      color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bahnhof Castione-Arbedo – Abfahrten</h1>
+  <div class="clock" id="clock"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Zeit</th>
+        <th>Zug</th>
+        <th>Nach</th>
+        <th>Hinweis</th>
+      </tr>
+    </thead>
+    <tbody id="departures"></tbody>
+  </table>
+
+  <script>
+    (function() {
+      const re1Hours = Array.from({length: 15}, (_, i) => 6 + i);
+      const s1Hours = Array.from({length: 15}, (_, i) => 6 + i);
+      const s2Hours = [7, 8, 17, 18];
+      const re2Hours = Array.from({length: 15}, (_, i) => 6 + i);
+      const ir13Hours = Array.from({length: 15}, (_, i) => 6 + i);
+
+      function pad(n) {
+        return n.toString().padStart(2, '0');
+      }
+
+      function formatTime(h, m, s) {
+        if (!s) {
+          return `${pad(h)}:${pad(m)}`;
+        } else {
+          return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+      }
+
+      function extractDelayMinutes(notice) {
+        const match = notice.match(/\+\s?(\d{1,2})[‘']/);
+        return match ? parseInt(match[1], 10) : 0;
+      }
+
+      function getDepartures() {
+        const departures = [];
+        const current = new Date();
+
+        for (let i = -10; i < 180; i++) { // Auch leicht vergangene Abfahrten checken
+          const d = new Date(current.getTime() + i * 60_000);
+          const h = d.getHours();
+          const m = d.getMinutes();
+
+          // Abfahrten nach Airolo
+          if (re1Hours.includes(h) && m === 37) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'RE1',
+              destination: 'Biasca – Bodio TI – Lavorgo – Airolo',
+              notice: ''
+            });
+          }
+
+          if (s1Hours.includes(h) && m === 29) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'S1',
+              destination: 'Lumino TI – San Vittore – Roveredo GR – Mesocco',
+              notice: ''
+            });
+          }
+
+          if (s2Hours.includes(h) && m === 8) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'S2',
+              destination: 'Roveredo GR – Grono',
+              notice: ''
+            });
+          }
+
+          if (re2Hours.includes(h) && m === 24) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'RE2',
+              destination: 'Roveredo GR – Grono – Mesocco – Chur',
+              notice: ''
+            });
+          }
+
+          if (ir13Hours.includes(h) && m === 59) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'IR13',
+              destination: 'Mesocco – San Bernardino – Andeer – Chur',
+              notice: ''
+            });
+          }
+
+          // Abfahrten nach Bellinzona
+          if (re1Hours.includes(h) && m === 22) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'RE1',
+              destination: 'Bellinzona',
+              notice: ''
+            });
+          }
+
+          if (s1Hours.includes(h) && m === 2) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'S1',
+              destination: 'Bellinzona',
+              notice: ''
+            });
+          }
+
+          if (s2Hours.includes(h) && m === 50) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'S2',
+              destination: 'Bellinzona',
+              notice: ''
+            });
+          }
+
+          if (re2Hours.includes(h) && m === 34) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'RE2',
+              destination: 'Bellinzona',
+              notice: ''
+            });
+          }
+
+          if (ir13Hours.includes(h) && m === 59) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'IR13',
+              destination: 'Bellinzona',
+              notice: ''
+            });
+          }
+
+          // Korrigierte Abfahrtszeiten für die Rückfahrten nach Bellinzona
+          if (h === 8 && m === 34) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'RE1',
+              destination: 'Biasca – Bodio TI – Lavorgo – Airolo',
+              notice: ''
+            });
+          }
+
+          if (h === 9 && m === 22) {
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: 'RE1',
+              destination: 'Biasca – Bodio TI – Lavorgo – Airolo',
+              notice: ''
+            });
+          }
+        }
+
+        // Filtere nur gültige Verbindungen
+        const now = new Date();
+        return departures.filter(dep => {
+          const delay = extractDelayMinutes(dep.notice);
+          const plannedTime = new Date(now);
+          plannedTime.setHours(dep.hour, dep.minute, 0, 0);
+          plannedTime.setMinutes(plannedTime.getMinutes() + delay);
+          return plannedTime.getTime() + 30_000 >= now.getTime();
+        }).slice(0, 8);
+      }
+
+      function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').textContent = `Aktuelle Uhrzeit: ${formatTime(now.getHours(), now.getMinutes(), now.getSeconds())}`;
+      }
+
+      function renderDepartures() {
+        const tbody = document.getElementById('departures');
+        tbody.innerHTML = '';
+        const departures = getDepartures();
+
+        for (const d of departures) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${d.time}</td>
+            <td class="zugart">${d.line}</td>
+            <td class="ziel">${d.destination}</td>
+            <td class="hinweis">${d.notice}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+
+      function refresh() {
+        updateClock();
+        renderDepartures();
+      }
+
+      refresh();
+      setInterval(refresh, 1000); // Aktualisiert jede Sekunde
+    })();
+  </script>
+</body>
+</html>
