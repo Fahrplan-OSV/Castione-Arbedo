@@ -146,16 +146,17 @@
             });
           }
 
-          if (ir13Hours.includes(h) && m === 59) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'IR13',
-              destination: 'Mesocco – San Bernardino – Andeer – Chur',
-              notice: ''
-            });
-          }
+          if (ir13Hours.includes(h) && m === 59 && (h === 8 || h === 14 || h === 20)) {
+  departures.push({
+    time: formatTime(h, m),
+    hour: h,
+    minute: m,
+    line: 'IR13',
+    destination: 'Mesocco – San Bernardino – Andeer – Chur',
+    notice: 'Dieser Zug wird verkürzt geführt.'
+  });
+}
+
 
           // Abfahrten nach Bellinzona
           if (re1Hours.includes(h) && m === 22) {
@@ -202,16 +203,16 @@
             });
           }
 
-          if (ir13Hours.includes(h) && m === 59) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'IR13',
-              destination: 'Bellinzona',
-              notice: ''
-            });
-          }
+          if (ir13Hours.includes(h) && m === 59 && (h === 7 || h === 13 || h === 19)) {
+  departures.push({
+    time: formatTime(h, m),
+    hour: h,
+    minute: m,
+    line: 'IR13',
+    destination: 'Mesocco – San Bernardino – Andeer – Chur',
+    notice: 'Dieser Zug wird verkürzt geführt.'
+  });
+}
         }
 
         // Filtere nur gültige Verbindungen
