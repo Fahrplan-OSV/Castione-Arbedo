@@ -176,7 +176,7 @@
               minute: m,
               line: 'S1',
               destination: 'Bellinzona',
-              notice: ''
+              notice: h === 17 ? 'ca. +4‘' : ''
             });
           }
 
@@ -202,14 +202,14 @@
             });
           }
 
-          if (ir13Hours.includes(h) && m === 59) {
+          if (ir13Hours.includes(h) && m === 04) {
             departures.push({
               time: formatTime(h, m),
               hour: h,
               minute: m,
               line: 'IR13',
               destination: 'Bellinzona',
-              notice: h === 16 ? 'ca. +5‘' : ''
+              notice: ''
             });
           }
         }
