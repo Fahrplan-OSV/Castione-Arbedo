@@ -74,16 +74,16 @@
   <script>
     (function() {
       const lines = [
-        { line: 'RE1', minutes: [37], from: 5, to: 20, direction: 'Airolo', stops: 'Biasca – Bodio TI – Lavorgo – Airolo', track: '2', delayOffset: 50 },
-        { line: 'RE1', minutes: [19], from: 7, to: 22, direction: 'Bellinzona', stops: 'Biasca – Bellinzona', track: '2', delayOffset: 50 },
-        { line: 'S1', minutes: [29], from: 5, to: 23, direction: 'Mesocco', stops: 'Lumino TI – San Vittore – Roveredo GR – Mesocco', track: '11', delayOffset: 80 },
-        { line: 'S1', minutes: [2], from: 5, to: 23, direction: 'Bellinzona', stops: 'Bellinzona', track: '11', delayOffset: 80 },
-        { line: 'S2', minutes: [8], hours: [7, 8, 17, 18], direction: 'Grono', stops: 'Roveredo GR – Grono', track: '12', delayOffset: 65 },
-        { line: 'S2', minutes: [50], hours: [7, 8, 17, 18], direction: 'Bellinzona', stops: 'Bellinzona', track: '12', delayOffset: 65 },
-        { line: 'RE2', minutes: [24], from: 4, to: 20, direction: 'Chur', stops: 'Roveredo GR – Grono – Mesocco – Chur', track: '12', delayOffset: 50, extra: [{ hour: 4 }, { hour: 6 }, { hour: 22, weekday: true }] },
-        { line: 'RE2', minutes: [34], from: 6, to: 22, direction: 'Bellinzona', stops: 'Bellinzona', track: '11', delayOffset: 50, extra: [{ hour: 8 }, { hour: 0, weekday: true }] },
-        { line: 'IR13', minutes: [59], from: 5, to: 19, direction: 'Chur', stops: 'Mesocco – San Bernardino – Andeer – Chur', track: '12', delayOffset: 50 },
-        { line: 'IR13', minutes: [59], from: 7, to: 21, direction: 'Bellinzona', stops: 'Bellinzona', track: '12', delayOffset: 95 },
+        { line: 'RE1', minutes: [37], from: 5, to: 20, direction: 'Airolo via Biasca – Bodio TI – Lavorgo', track: '2', delayOffset: 50 },
+        { line: 'RE1', minutes: [19], from: 7, to: 22, direction: 'Bellinzona', track: '2', delayOffset: 50 },
+        { line: 'S1', minutes: [29], from: 5, to: 23, direction: 'Mesocco via Lumino TI – San Vittore – Roveredo GR', track: '11', delayOffset: 80 },
+        { line: 'S1', minutes: [2], from: 5, to: 23, direction: 'Bellinzona', track: '11', delayOffset: 80 },
+        { line: 'S2', minutes: [8], hours: [7, 8, 17, 18], direction: 'Grono via Roveredo GR', track: '12', delayOffset: 65 },
+        { line: 'S2', minutes: [50], hours: [7, 8, 17, 18], direction: 'Bellinzona', track: '12', delayOffset: 65 },
+        { line: 'RE2', minutes: [24], from: 4, to: 20, direction: 'Chur via Roveredo GR – Grono – Mesocco', track: '12', delayOffset: 50, extra: [{ hour: 4 }, { hour: 6 }, { hour: 22, weekday: true }] },
+        { line: 'RE2', minutes: [34], from: 6, to: 22, direction: 'Bellinzona', track: '11', delayOffset: 50, extra: [{ hour: 8 }, { hour: 0, weekday: true }] },
+        { line: 'IR13', minutes: [59], from: 5, to: 19, direction: 'Chur via Mesocco – San Bernardino – Andeer – Chur', track: '12', delayOffset: 50 },
+        { line: 'IR13', minutes: [04], from: 7, to: 21, direction: 'Bellinzona', track: '12', delayOffset: 95 },
       ];
 
       function pad(n) {
