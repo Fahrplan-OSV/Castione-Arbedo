@@ -69,160 +69,64 @@
 
   <script>
     (function() {
-      const re1Hours = Array.from({length: 16}, (_, i) => 7 + i);
-      const s1Hours = Array.from({length: 19}, (_, i) => 5 + i);
-      const s2Hours = [7, 8, 17, 18];
-      const re2Hours = Array.from({length: 16}, (_, i) => 5 + i);
-      const ir13Hours = Array.from({length: 17}, (_, i) => 5 + i);
+      const lines = [
+        { line: 'RE1', minute: 37, direction: 'Biasca – Bodio TI – Lavorgo – Airolo', from: 5, to: 20 },
+        { line: 'RE1', minute: 19, direction: 'Bellinzona', from: 7, to: 22 },
+
+        { line: 'S1', minute: 29, direction: 'Lumino TI – San Vittore – Roveredo GR – Mesocco', from: 5, to: 23 },
+        { line: 'S1', minute: 2, direction: 'Bellinzona', from: 5, to: 23 },
+
+        { line: 'S2', minute: 8, direction: 'Roveredo GR – Grono', hours: [7,8,17,18] },
+        { line: 'S2', minute: 50, direction: 'Bellinzona', hours: [7,8,17,18] },
+
+        { line: 'RE2', minute: 24, direction: 'Roveredo GR – Grono – Mesocco – Chur', from: 6, to: 20 },
+        { line: 'RE2', minute: 4, direction: 'Roveredo GR – Grono – Mesocco – Chur', hours: [4,6], extra: true },
+        { line: 'RE2', minute: 34, direction: 'Bellinzona', from: 6, to: 22 },
+        { line: 'RE2', minute: 34, direction: 'Bellinzona', hours: [0], days: ['Mon','Tue','Wed','Thu','Fri'], extra: true },
+
+        { line: 'IR13', minute: 59, direction: 'Mesocco – San Bernardino – Andeer – Chur', from: 5, to: 19 },
+        { line: 'IR13', minute: 59, direction: 'Bellinzona', from: 7, to: 21 }
+      ];
 
       function pad(n) {
         return n.toString().padStart(2, '0');
       }
 
       function formatTime(h, m, s) {
-        if (!s) {
-          return `${pad(h)}:${pad(m)}`;
-        } else {
-          return `${pad(h)}:${pad(m)}:${pad(s)}`;
-        }
+        return `${pad(h)}:${pad(m)}:${pad(s)}`;
       }
 
-      function extractDelayMinutes(notice) {
-        const match = notice.match(/\+\s?(\d{1,2})[‘']/);
-        return match ? parseInt(match[1], 10) : 0;
+      function matchDay(day, allowedDays) {
+        if (!allowedDays) return true;
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        return allowedDays.includes(days[day]);
       }
 
       function getDepartures() {
         const departures = [];
-        const current = new Date();
+        const now = new Date();
 
-        for (let i = -10; i < 180; i++) { // Auch leicht vergangene Abfahrten checken
-          const d = new Date(current.getTime() + i * 60_000);
+        for (let i = -10; i < 180; i++) {
+          const d = new Date(now.getTime() + i * 60_000);
           const h = d.getHours();
           const m = d.getMinutes();
+          const weekday = d.getDay();
 
-          // Abfahrten nach Airolo
-          if (re1Hours.includes(h) && m === 37) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'RE1',
-              destination: 'Biasca – Bodio TI – Lavorgo – Airolo',
-              notice: ''
-            });
-          }
-
-          if (s1Hours.includes(h) && m === 29) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'S1',
-              destination: 'Lumino TI – San Vittore – Roveredo GR – Mesocco',
-              notice: ''
-            });
-          }
-
-          if (s2Hours.includes(h) && m === 8) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'S2',
-              destination: 'Roveredo GR – Grono',
-              notice: [7, 8, 17, 18].includes(h) ? 'Ausfall' : ''
-            });
-          }
-
-          if (re2Hours.includes(h) && m === 24) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'RE2',
-              destination: 'Roveredo GR – Grono – Mesocco – Chur',
-              notice: ''
-            });
-          }
-
-          if (ir13Hours.includes(h) && m === 59) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'IR13',
-              destination: 'Mesocco – San Bernardino – Andeer – Chur',
-              notice: ''
-            });
-          }
-
-          // Abfahrten nach Bellinzona
-          if (re1Hours.includes(h) && m === 19) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'RE1',
-              destination: 'Bellinzona',
-              notice: h === 17 ? 'ca. +4‘' : ''
-            });
-          }
-
-          if (s1Hours.includes(h) && m === 2) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'S1',
-              destination: 'Bellinzona',
-              notice: h === 19 ? 'ca. +11‘' : ''
-            });
-          }
-
-          if (s2Hours.includes(h) && m === 50) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'S2',
-              destination: 'Bellinzona',
-              notice: [7, 8, 17, 18].includes(h) ? 'Ausfall' : ''
-            });
-          }
-
-          if (re2Hours.includes(h) && m === 34) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'RE2',
-              destination: 'Bellinzona',
-              notice: ''
-            });
-          }
-
-          if (ir13Hours.includes(h) && m === 04) {
-            departures.push({
-              time: formatTime(h, m),
-              hour: h,
-              minute: m,
-              line: 'IR13',
-              destination: 'Bellinzona',
-              notice: h === 17 ? 'ca. +3‘' : ''
-            });
+          for (const entry of lines) {
+            if ((entry.hours && entry.hours.includes(h)) || (!entry.hours && h >= entry.from && h <= entry.to)) {
+              if (m === entry.minute && matchDay(weekday, entry.days)) {
+                departures.push({
+                  time: `${pad(h)}:${pad(m)}`,
+                  line: entry.line,
+                  destination: entry.direction,
+                  notice: entry.extra ? 'nur Mo–Fr' : ''
+                });
+              }
+            }
           }
         }
 
-        // Filtere nur gültige Verbindungen
-        const now = new Date();
-        return departures.filter(dep => {
-          const delay = extractDelayMinutes(dep.notice);
-          const plannedTime = new Date(now);
-          plannedTime.setHours(dep.hour, dep.minute, 0, 0);
-          plannedTime.setMinutes(plannedTime.getMinutes() + delay);
-          return plannedTime.getTime() + 30_000 >= now.getTime();
-        }).slice(0, 8);
+        return departures.slice(0, 8);
       }
 
       function updateClock() {
@@ -253,7 +157,7 @@
       }
 
       refresh();
-      setInterval(refresh, 1000); // Aktualisiert jede Sekunde
+      setInterval(refresh, 1000);
     })();
   </script>
 </body>
