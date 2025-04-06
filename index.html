@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bahnhof Castione-Arbedo – Abfahrten</title>
   <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500&display=swap" rel="stylesheet">
   <style>
@@ -69,31 +69,20 @@
 
   <script>
     (function() {
-      const delays = {
-        "RE1": 50_000,
-        "S1": 80_000,
-        "S2": 65_000,
-        "RE2": 50_000,
-        "IR13-Bellinzona": 95_000,
-        "IR13-Chur": 50_000
+      const delaySeconds = {
+        'RE1-Bellinzona': 50,
+        'RE1-Airolo': 50,
+        'S1': 80,
+        'S2': 65,
+        'IR13-Bellinzona': 95,
+        'IR13-Chur': 50,
+        'RE2-Bellinzona': 50,
+        'RE2-Chur': 50
       };
 
-      const schedule = [
-        { line: "RE1", minute: 37, from: 5, to: 20, dest: "Biasca – Bodio TI – Lavorgo – Airolo" },
-        { line: "RE1", minute: 19, from: 7, to: 22, dest: "Bellinzona", delay: 7 },
-
-        { line: "S1", minute: 29, from: 5, to: 23, dest: "Lumino TI – San Vittore – Roveredo GR – Mesocco" },
-        { line: "S1", minute: 2, from: 5, to: 23, dest: "Bellinzona" },
-
-        { line: "S2", minute: 8, from: 7, to: 18, dest: "Roveredo GR – Grono" },
-        { line: "S2", minute: 50, from: 7, to: 18, dest: "Bellinzona" },
-
-        { line: "RE2", minute: 24, from: 6, to: 20, dest: "Roveredo GR – Grono – Mesocco – Chur" },
-        { line: "RE2", minute: 34, from: 6, to: 22, dest: "Bellinzona" },
-
-        { line: "IR13", minute: 59, from: 5, to: 19, dest: "Mesocco – San Bernardino – Andeer – Chur" },
-        { line: "IR13", minute: 04, from: 7, to: 21, dest: "Bellinzona" }
-      ];
+      const specialDelays = {
+        '18:19-RE1-Bellinzona': 'ca. +7‘'
+      };
 
       function pad(n) {
         return n.toString().padStart(2, '0');
@@ -103,43 +92,65 @@
         return `${pad(h)}:${pad(m)}`;
       }
 
+      function extractDelayMinutes(notice) {
+        const match = notice.match(/\+\s?(\d{1,2})[‘']/);
+        return match ? parseInt(match[1], 10) : 0;
+      }
+
       function getDepartures() {
         const departures = [];
         const now = new Date();
 
-        for (let i = -10; i < 180; i++) {
+        for (let i = -5; i < 180; i++) {
           const d = new Date(now.getTime() + i * 60_000);
           const h = d.getHours();
           const m = d.getMinutes();
+          const timeKey = `${pad(h)}:${pad(m)}`;
 
-          for (const entry of schedule) {
-            if (h >= entry.from && h <= entry.to && m === entry.minute) {
-              departures.push({
-                time: formatTime(h, m),
-                hour: h,
-                minute: m,
-                line: entry.line,
-                destination: entry.dest,
-                notice: '',
-              });
-            }
-          }
+          const push = (line, destination, idKey) => {
+            const key = `${timeKey}-${line}-${destination.split(' ')[0]}`;
+            departures.push({
+              time: formatTime(h, m),
+              hour: h,
+              minute: m,
+              line: line,
+              destination: destination,
+              notice: specialDelays[key] || ''
+            });
+          };
+
+          // RE1
+          if ((h >= 5 && h <= 20) && m === 37) push('RE1', 'Biasca – Bodio TI – Lavorgo – Airolo', 'RE1-Airolo');
+          if ((h >= 7 && h <= 22) && m === 19) push('RE1', 'Bellinzona', 'RE1-Bellinzona');
+
+          // S1
+          if ((h >= 5 && h <= 23) && m === 29) push('S1', 'Lumino TI – San Vittore – Roveredo GR – Mesocco', 'S1');
+          if ((h >= 5 && h <= 23) && m === 2) push('S1', 'Bellinzona', 'S1');
+
+          // S2
+          if ((h === 7 || h === 8 || h === 17 || h === 18) && m === 8) push('S2', 'Roveredo GR – Grono', 'S2');
+          if ((h === 7 || h === 8 || h === 17 || h === 18) && m === 50) push('S2', 'Bellinzona', 'S2');
+
+          // RE2
+          if (((h >= 4 && h <= 20) && m === 24) || (['6', '22'].includes(h.toString()) && m === 24)) push('RE2', 'Roveredo GR – Grono – Mesocco – Chur', 'RE2-Chur');
+          if (((h >= 6 && h <= 22) && m === 34) || (h === 0 && m === 34)) push('RE2', 'Bellinzona', 'RE2-Bellinzona');
+
+          // IR13
+          if ((h >= 5 && h <= 19) && m === 59) push('IR13', 'Mesocco – San Bernardino – Andeer – Chur', 'IR13-Chur');
+          if ((h >= 7 && h <= 21) && m === 59) push('IR13', 'Bellinzona', 'IR13-Bellinzona');
         }
 
         return departures.filter(dep => {
-          const depTime = new Date();
-          depTime.setHours(dep.hour, dep.minute, 0, 0);
+          const delay = extractDelayMinutes(dep.notice);
+          const key = `${dep.line}-${dep.destination.split(' ')[0]}`;
+          const duration = delaySeconds[key] || 50;
 
-          let threshold = delays[dep.line];
-          if (dep.line === "IR13" && dep.destination === "Bellinzona") {
-            threshold = delays["IR13-Bellinzona"];
-          }
-          if (dep.line === "IR13" && dep.destination.includes("Chur")) {
-            threshold = delays["IR13-Chur"];
-          }
+          const planned = new Date();
+          planned.setHours(dep.hour, dep.minute, 0, 0);
+          planned.setMinutes(planned.getMinutes() + delay);
 
-          return depTime.getTime() + threshold >= now.getTime();
-        }).slice(0, 8);
+          return planned.getTime() + duration * 1000 >= now.getTime();
+        }).slice(0, 10);
       }
 
       function updateClock() {
@@ -175,3 +186,4 @@
   </script>
 </body>
 </html>
+
