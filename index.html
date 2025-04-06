@@ -69,37 +69,38 @@
 
   <script>
     (function() {
-      const lines = [
-        { line: 'RE1', minute: 37, direction: 'Biasca – Bodio TI – Lavorgo – Airolo', from: 5, to: 20 },
-        { line: 'RE1', minute: 19, direction: 'Bellinzona', from: 7, to: 22 },
+      const delays = {
+        "RE1": 50_000,
+        "S1": 80_000,
+        "S2": 65_000,
+        "RE2": 50_000,
+        "IR13-Bellinzona": 95_000,
+        "IR13-Chur": 50_000
+      };
 
-        { line: 'S1', minute: 29, direction: 'Lumino TI – San Vittore – Roveredo GR – Mesocco', from: 5, to: 23 },
-        { line: 'S1', minute: 2, direction: 'Bellinzona', from: 5, to: 23 },
+      const schedule = [
+        { line: "RE1", minute: 37, from: 5, to: 20, dest: "Biasca – Bodio TI – Lavorgo – Airolo" },
+        { line: "RE1", minute: 19, from: 7, to: 22, dest: "Bellinzona" },
 
-        { line: 'S2', minute: 8, direction: 'Roveredo GR – Grono', hours: [7,8,17,18] },
-        { line: 'S2', minute: 50, direction: 'Bellinzona', hours: [7,8,17,18] },
+        { line: "S1", minute: 29, from: 5, to: 23, dest: "Lumino TI – San Vittore – Roveredo GR – Mesocco" },
+        { line: "S1", minute: 2, from: 5, to: 23, dest: "Bellinzona" },
 
-        { line: 'RE2', minute: 24, direction: 'Roveredo GR – Grono – Mesocco – Chur', from: 6, to: 20 },
-        { line: 'RE2', minute: 4, direction: 'Roveredo GR – Grono – Mesocco – Chur', hours: [4,6], extra: true },
-        { line: 'RE2', minute: 34, direction: 'Bellinzona', from: 6, to: 22 },
-        { line: 'RE2', minute: 34, direction: 'Bellinzona', hours: [0], days: ['Mon','Tue','Wed','Thu','Fri'], extra: true },
+        { line: "S2", minute: 8, from: 7, to: 18, dest: "Roveredo GR – Grono" },
+        { line: "S2", minute: 50, from: 7, to: 18, dest: "Bellinzona" },
 
-        { line: 'IR13', minute: 59, direction: 'Mesocco – San Bernardino – Andeer – Chur', from: 5, to: 19 },
-        { line: 'IR13', minute: 59, direction: 'Bellinzona', from: 7, to: 21 }
+        { line: "RE2", minute: 24, from: 6, to: 20, dest: "Roveredo GR – Grono – Mesocco – Chur" },
+        { line: "RE2", minute: 34, from: 6, to: 22, dest: "Bellinzona" },
+
+        { line: "IR13", minute: 59, from: 5, to: 19, dest: "Mesocco – San Bernardino – Andeer – Chur" },
+        { line: "IR13", minute: 59, from: 7, to: 21, dest: "Bellinzona" }
       ];
 
       function pad(n) {
         return n.toString().padStart(2, '0');
       }
 
-      function formatTime(h, m, s) {
-        return `${pad(h)}:${pad(m)}:${pad(s)}`;
-      }
-
-      function matchDay(day, allowedDays) {
-        if (!allowedDays) return true;
-        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        return allowedDays.includes(days[day]);
+      function formatTime(h, m) {
+        return `${pad(h)}:${pad(m)}`;
       }
 
       function getDepartures() {
@@ -110,28 +111,40 @@
           const d = new Date(now.getTime() + i * 60_000);
           const h = d.getHours();
           const m = d.getMinutes();
-          const weekday = d.getDay();
 
-          for (const entry of lines) {
-            if ((entry.hours && entry.hours.includes(h)) || (!entry.hours && h >= entry.from && h <= entry.to)) {
-              if (m === entry.minute && matchDay(weekday, entry.days)) {
-                departures.push({
-                  time: `${pad(h)}:${pad(m)}`,
-                  line: entry.line,
-                  destination: entry.direction,
-                  notice: entry.extra ? 'nur Mo–Fr' : ''
-                });
-              }
+          for (const entry of schedule) {
+            if (h >= entry.from && h <= entry.to && m === entry.minute) {
+              departures.push({
+                time: formatTime(h, m),
+                hour: h,
+                minute: m,
+                line: entry.line,
+                destination: entry.dest,
+                notice: '',
+              });
             }
           }
         }
 
-        return departures.slice(0, 8);
+        return departures.filter(dep => {
+          const depTime = new Date();
+          depTime.setHours(dep.hour, dep.minute, 0, 0);
+
+          let threshold = delays[dep.line];
+          if (dep.line === "IR13" && dep.destination === "Bellinzona") {
+            threshold = delays["IR13-Bellinzona"];
+          }
+          if (dep.line === "IR13" && dep.destination.includes("Chur")) {
+            threshold = delays["IR13-Chur"];
+          }
+
+          return depTime.getTime() + threshold >= now.getTime();
+        }).slice(0, 8);
       }
 
       function updateClock() {
         const now = new Date();
-        document.getElementById('clock').textContent = `Aktuelle Uhrzeit: ${formatTime(now.getHours(), now.getMinutes(), now.getSeconds())}`;
+        document.getElementById('clock').textContent = `Aktuelle Uhrzeit: ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       }
 
       function renderDepartures() {
