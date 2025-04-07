@@ -43,7 +43,7 @@
       width: 6rem;
     }
     .ziel {
-      width: 35%;
+      width: 40%;
     }
     .hinweis {
       width: 20%;
@@ -70,112 +70,108 @@
     </thead>
     <tbody id="departures"></tbody>
   </table>
-
   <script>
-    (function() {
-      const lines = [
-        { line: 'RE1', minutes: [37], from: 5, to: 20, direction: 'Biasca – Bodio TI – Lavorgo - Airolo', track: '2', delayOffset: 50 },
-        { line: 'RE1', minutes: [19], from: 7, to: 22, direction: 'Bellinzona', track: '2', delayOffset: 50 },
-        { line: 'S1', minutes: [29], from: 5, to: 23, direction: 'Lumino TI – San Vittore – Roveredo GR - Mesocco', track: '13', delayOffset: 80 },
-        { line: 'S1', minutes: [2], from: 5, to: 23, direction: 'Bellinzona', track: '11', delayOffset: 80 },
-        { line: 'S2', minutes: [8], hours: [7, 8, 17, 18], direction: 'Roveredo GR - Grono', track: '12', delayOffset: 65 },
-        { line: 'S2', minutes: [50], hours: [7, 8, 17, 18], direction: 'Bellinzona', track: '12', delayOffset: 65 },
-        { line: 'RE2', minutes: [24], from: 6, to: 21, direction: 'Roveredo GR – Grono – Mesocco - Chur', track: '12', delayOffset: 50 },
-        { line: 'RE2', minutes: [34], from: 7, to: 22, direction: 'Bellinzona', track: '11', delayOffset: 50 },
-        { line: 'IR13', minutes: [59], from: 5, to: 19, direction: 'Mesocco – San Bernardino – Andeer - Chur', track: '12', delayOffset: 50 },
-        { line: 'IR13', minutes: [04], from: 8, to: 22, direction: 'Bellinzona', track: '12', delayOffset: 95 },
-      ];
+    const lines = [
+      { type: 'RE1', minute: 37, from: 5, to: 20, destination: 'Biasca - Bodio TI - Lavorgo - Airolo', platform: '2', delayWindow: [15, 10], delays: ['ca. +3‘', 'ca. +4‘'] },
+      { type: 'RE1', minute: 19, from: 7, to: 22, destination: 'Bellinzona', platform: '2' },
+      { type: 'S1', minute: 29, from: 5, to: 23, destination: 'Lumino TI - San Vittore - Roveredo GR - Mesocco', platform: '11' },
+      { type: 'S1', minute: 2, from: 5, to: 23, destination: 'Bellinzona', platform: '11' },
+      { type: 'S2', minute: 8, from: 7, to: 18, destination: 'Roveredo GR - Grono', platform: '12' },
+      { type: 'S2', minute: 50, from: 7, to: 18, destination: 'Bellinzona', platform: '12' },
+      { type: 'RE2', minute: 24, from: 6, to: 20, destination: 'Roveredo GR - Grono - Mesocco - Chur', platform: '12' },
+      { type: 'IR13', minute: 59, from: 5, to: 19, destination: 'Mesocco - San Bernardino - Andeer - Chur', platform: '12' },
+      { type: 'IR13', minute: 59, from: 7, to: 21, destination: 'Bellinzona', platform: '12' },
+      { type: 'RE2', minute: 34, from: 6, to: 22, destination: 'Bellinzona', platform: '11' },
+      { type: 'RE2', minute: 24, from: 22, to: 22, destination: 'Chur', platform: '12', weekdayOnly: true },
+    ];
 
-      function pad(n) {
-        return n.toString().padStart(2, '0');
-      }
+    const durations = {
+      'RE1': 50,
+      'S1': 80,
+      'S2': 65,
+      'IR13-Bellinzona': 95,
+      'IR13-Chur': 50,
+      'RE2-Bellinzona': 50,
+      'RE2-Chur': 50
+    };
 
-      function formatTime(h, m) {
-        return `${pad(h)}:${pad(m)}`;
-      }
+    function pad(n) {
+      return n.toString().padStart(2, '0');
+    }
 
-      function getDepartures() {
-        const departures = [];
-        const now = new Date();
-        const weekday = now.getDay() >= 1 && now.getDay() <= 5;
+    function formatTime(h, m) {
+      return `${pad(h)}:${pad(m)}`;
+    }
 
-        for (let i = -10; i < 180; i++) {
-          const d = new Date(now.getTime() + i * 60000);
-          const h = d.getHours();
-          const m = d.getMinutes();
+    function getDepartures() {
+      const now = new Date();
+      const currentDay = now.getDay();
+      const departures = [];
 
-          for (const l of lines) {
-            if ((l.hours && !l.hours.includes(h)) || (!l.hours && (h < l.from || h > l.to))) continue;
-            if (!l.minutes.includes(m)) continue;
-            if (l.extra && !l.extra.some(e => e.hour === h && (!e.weekday || weekday))) {
-              if (!l.extra) continue;
-              if (!l.extra.some(e => e.hour === h && (!e.weekday || weekday))) continue;
-            }
+      for (let i = -15; i < 180; i++) {
+        const date = new Date(now.getTime() + i * 60000);
+        const h = date.getHours();
+        const m = date.getMinutes();
 
-            const depTime = new Date(d);
-            const timeDiff = depTime.getTime() - now.getTime();
+        for (const line of lines) {
+          if ((line.weekdayOnly && currentDay === 0) || h < line.from || h > line.to) continue;
+          if (m === line.minute) {
             let notice = '';
-            if (l.line === 'RE1' && l.direction === 'Bellinzona') {
-              if (timeDiff <= 15 * 60000 && timeDiff > 10 * 60000) {
-                notice = 'ca. +3‘';
-              } else if (timeDiff <= 10 * 60000 && timeDiff > 0) {
-                notice = 'ca. +4‘';
-              }
+            if (line.type === 'RE1' && line.destination === 'Bellinzona') {
+              const target = new Date(date);
+              const minsBefore = (target - now) / 60000;
+              if (minsBefore <= 15 && minsBefore > 10) notice = 'ca. +3‘';
+              if (minsBefore <= 10) notice = 'ca. +4‘';
             }
+            const durationKey = line.type + (line.destination.includes('Bellinzona') ? '-Bellinzona' : line.destination.includes('Chur') ? '-Chur' : '');
+            const lifetime = durations[durationKey] ?? durations[line.type] ?? 60;
+            const removeAfter = new Date(date.getTime() + lifetime * 1000);
 
-            departures.push({
-              time: formatTime(h, m),
-              line: l.line,
-              destination: l.stops,
-              direction: l.direction,
-              notice: notice,
-              track: l.track,
-              hour: h,
-              minute: m,
-              delayOffset: l.delayOffset
-            });
+            if (removeAfter > now) {
+              departures.push({
+                time: formatTime(h, m),
+                line: line.type,
+                destination: line.destination,
+                platform: line.platform,
+                notice
+              });
+            }
           }
         }
-
-        return departures.filter(dep => {
-          const depTime = new Date(now);
-          depTime.setHours(dep.hour, dep.minute, 0, 0);
-          return depTime.getTime() + dep.delayOffset * 1000 >= now.getTime();
-        }).slice(0, 8);
       }
+      return departures.slice(0, 8);
+    }
 
-      function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').textContent = `Aktuelle Uhrzeit: ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = `Aktuelle Uhrzeit: ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+
+    function renderDepartures() {
+      const tbody = document.getElementById('departures');
+      tbody.innerHTML = '';
+      const departures = getDepartures();
+
+      for (const d of departures) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${d.time}</td>
+          <td class="zugart">${d.line}</td>
+          <td class="ziel">${d.destination}</td>
+          <td class="gleis">${d.platform}</td>
+          <td class="hinweis">${d.notice}</td>
+        `;
+        tbody.appendChild(tr);
       }
+    }
 
-      function renderDepartures() {
-        const tbody = document.getElementById('departures');
-        tbody.innerHTML = '';
-        const departures = getDepartures();
+    function refresh() {
+      updateClock();
+      renderDepartures();
+    }
 
-        for (const d of departures) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${d.time}</td>
-            <td class="zugart">${d.line}</td>
-            <td class="ziel">${d.direction}</td>
-            <td class="gleis">${d.track}</td>
-            <td class="hinweis">${d.notice}</td>
-          `;
-          tbody.appendChild(tr);
-        }
-      }
-
-      function refresh() {
-        updateClock();
-        renderDepartures();
-      }
-
-      refresh();
-      setInterval(refresh, 1000);
-    })();
+    refresh();
+    setInterval(refresh, 1000);
   </script>
 </body>
 </html>
-
