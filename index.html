@@ -72,18 +72,18 @@
   </table>
   <script>
     const lines = [
-      { type: 'RE1', minute: 37, from: 5, to: 20, destination: 'Biasca - Bodio TI - Lavorgo - Airolo', platform: '2', delayWindow: [15, 10], delays: ['ca. +3‘', 'ca. +4‘'] },
-      { type: 'RE1', minute: 19, from: 7, to: 22, destination: 'Bellinzona', platform: '2' },
-      { type: 'S1', minute: 29, from: 5, to: 23, destination: 'Lumino TI - San Vittore - Roveredo GR - Mesocco', platform: '13' },
-      { type: 'S1', minute: 2, from: 5, to: 23, destination: 'Bellinzona', platform: '11' },
-      { type: 'S2', minute: 8, from: 7, to: 18, destination: 'Roveredo GR - Grono', platform: '12' },
-      { type: 'S2', minute: 50, from: 7, to: 18, destination: 'Bellinzona', platform: '11' },
-      { type: 'RE2', minute: 24, from: 6, to: 20, destination: 'Roveredo GR - Grono - Mesocco - Chur', platform: '12' },
-      { type: 'IR13', minute: 59, from: 5, to: 19, destination: 'Mesocco - San Bernardino - Andeer - Chur', platform: '12' },
-      { type: 'IR13', minute: 04, from: 7, to: 21, destination: 'Bellinzona', platform: '13' },
-      { type: 'IR13', minute: 57, from: 20, to: 21, destination: 'Mesocco - San - Bernardino - Andeer - Chur', platform: '12' },
-      { type: 'IR13', minute: 07, from: 22, to: 23, destination: 'Bellinzona', platform: '13' },
-      { type: 'RE2', minute: 34, from: 6, to: 22, destination: 'Bellinzona', platform: '11' },
+      { type: 'RE1', minute: 37, from: 5, to: 20, destination: 'Biasca - Bodio TI - Lavorgo - Airolo', platform: '2', delayWindow: [15, 10], delays: ['ca. +3‘', 'ca. +4‘'], duration: 50 },
+      { type: 'RE1', minute: 19, from: 7, to: 22, destination: 'Bellinzona', platform: '2', duration: 60 },
+      { type: 'S1', minute: 29, from: 5, to: 23, destination: 'Lumino TI - San Vittore - Roveredo GR - Mesocco', platform: '13', duration: 80 },
+      { type: 'S1', minute: 2, from: 5, to: 23, destination: 'Bellinzona', platform: '11', duration: 65 },
+      { type: 'S2', minute: 8, from: 7, to: 18, destination: 'Roveredo GR - Grono', platform: '12', duration: 65 },
+      { type: 'S2', minute: 50, from: 7, to: 18, destination: 'Bellinzona', platform: '11', duration: 65 },
+      { type: 'RE2', minute: 24, from: 6, to: 20, destination: 'Roveredo GR - Grono - Mesocco - Chur', platform: '12', duration: 50 },
+      { type: 'IR13', minute: 59, from: 5, to: 19, destination: 'Mesocco - San Bernardino - Andeer - Chur', platform: '12', duration: 55 },
+      { type: 'IR13', minute: 04, from: 7, to: 21, destination: 'Bellinzona', platform: '12', duration: 60 },
+      { type: 'IR13', minute: 57, from: 20, to: 21, destination: 'Mesocco - San - Bernardino - Andeer - Chur', platform: '12', duration: 55 },
+      { type: 'IR13', minute: 07, from: 22, to: 23, destination: 'Bellinzona', platform: '12', duration: 60 },
+      { type: 'RE2', minute: 34, from: 6, to: 22, destination: 'Bellinzona', platform: '11', duration: 50 },
     ];
 
     const durations = {
@@ -142,7 +142,8 @@
                 line: line.type,
                 destination: line.destination,
                 platform: line.platform,
-                notice
+                notice,
+                duration: line.duration
               });
             }
           }
