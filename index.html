@@ -140,7 +140,7 @@
             }
 
             const offsetDelaySec = offsetDelays[line.offsetDelayKey] || 0;
-            const removeAfter = new Date(date.getTime() + (offsetDelaySec / 60 + delayInMin) * 60000);
+            const removeAfter = new Date(date.getTime() + (offsetDelaySec + delayInMin * 60) * 1000);
 
             if (removeAfter > now) {
               departures.push({
@@ -190,5 +190,3 @@
   </script>
 </body>
 </html>
-
-
