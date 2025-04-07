@@ -72,18 +72,18 @@
   </table>
   <script>
     const lines = [
-      { type: 'RE1', minute: 37, from: 5, to: 20, destination: 'Biasca - Bodio TI - Lavorgo - Airolo', platform: '2', delayWindow: [15, 10], delays: ['ca. +3‘', 'ca. +4‘'], duration: 50 },
-      { type: 'RE1', minute: 19, from: 7, to: 22, destination: 'Bellinzona', platform: '2', duration: 60 },
-      { type: 'S1', minute: 29, from: 5, to: 23, destination: 'Lumino TI - San Vittore - Roveredo GR - Mesocco', platform: '13', duration: 80 },
-      { type: 'S1', minute: 2, from: 5, to: 23, destination: 'Bellinzona', platform: '11', duration: 65 },
-      { type: 'S2', minute: 8, from: 7, to: 18, destination: 'Roveredo GR - Grono', platform: '12', duration: 65 },
-      { type: 'S2', minute: 50, from: 7, to: 18, destination: 'Bellinzona', platform: '11', duration: 65 },
-      { type: 'RE2', minute: 24, from: 6, to: 20, destination: 'Roveredo GR - Grono - Mesocco - Chur', platform: '12', duration: 50 },
-      { type: 'IR13', minute: 59, from: 5, to: 19, destination: 'Mesocco - San Bernardino - Andeer - Chur', platform: '12', duration: 55 },
-      { type: 'IR13', minute: 04, from: 7, to: 21, destination: 'Bellinzona', platform: '13', duration: 60 },
-      { type: 'IR13', minute: 57, from: 20, to: 21, destination: 'Mesocco - San - Bernardino - Andeer - Chur', platform: '12', duration: 55 },
-      { type: 'IR13', minute: 07, from: 22, to: 23, destination: 'Bellinzona', platform: '13', duration: 60 },
-      { type: 'RE2', minute: 34, from: 6, to: 22, destination: 'Bellinzona', platform: '11', duration: 50 },
+      { type: 'RE1', minute: 37, from: 5, to: 20, destination: 'Biasca - Bodio TI - Lavorgo - Airolo', platform: '2', delayWindow: [15, 10], delays: ['ca. +3‘', 'ca. +4‘'] },
+      { type: 'RE1', minute: 19, from: 7, to: 22, destination: 'Bellinzona', platform: '2' },
+      { type: 'S1', minute: 29, from: 5, to: 23, destination: 'Lumino TI - San Vittore - Roveredo GR - Mesocco', platform: '13' },
+      { type: 'S1', minute: 2, from: 5, to: 23, destination: 'Bellinzona', platform: '11' },
+      { type: 'S2', minute: 8, from: 7, to: 18, destination: 'Roveredo GR - Grono', platform: '12' },
+      { type: 'S2', minute: 50, from: 7, to: 18, destination: 'Bellinzona', platform: '11' },
+      { type: 'RE2', minute: 24, from: 6, to: 20, destination: 'Roveredo GR - Grono - Mesocco - Chur', platform: '12' },
+      { type: 'IR13', minute: 59, from: 5, to: 19, destination: 'Mesocco - San Bernardino - Andeer - Chur', platform: '12' },
+      { type: 'IR13', minute: 04, from: 7, to: 21, destination: 'Bellinzona', platform: '12' },
+      { type: 'IR13', minute: 57, from: 20, to: 21, destination: 'Mesocco - San - Bernardino - Andeer - Chur', platform: '12' },
+      { type: 'IR13', minute: 07, from: 22, to: 23, destination: 'Bellinzona', platform: '12' },
+      { type: 'RE2', minute: 34, from: 6, to: 22, destination: 'Bellinzona', platform: '11' },
     ];
 
     const durations = {
@@ -118,23 +118,15 @@
           if ((line.weekdayOnly && currentDay === 0) || h < line.from || h > line.to) continue;
           if (m === line.minute) {
             let notice = '';
-            let delayMinutes = 0;
-
             if (line.type === 'RE1' && line.destination === 'Bellinzona') {
-              const plannedTime = new Date(date);
-              const minsBefore = (plannedTime - now) / 60000;
-              if (minsBefore <= 15 && minsBefore > 10) {
-                notice = 'ca. +3‘';
-                delayMinutes = 3;
-              } else if (minsBefore <= 10) {
-                notice = 'ca. +4‘';
-                delayMinutes = 4;
-              }
+              const target = new Date(date);
+              const minsBefore = (target - now) / 60000;
+              if (minsBefore <= 15 && minsBefore > 10) notice = 'ca. +3‘';
+              if (minsBefore <= 10) notice = 'ca. +4‘';
             }
-
             const durationKey = line.type + (line.destination.includes('Bellinzona') ? '-Bellinzona' : line.destination.includes('Chur') ? '-Chur' : '');
-            const baseLifetime = durations[durationKey] ?? durations[line.type] ?? 60;
-            const removeAfter = new Date(date.getTime() + (delayMinutes * 60_000) + baseLifetime * 1000);
+            const lifetime = durations[durationKey] ?? durations[line.type] ?? 60;
+            const removeAfter = new Date(date.getTime() + lifetime * 1000);
 
             if (removeAfter > now) {
               departures.push({
@@ -143,7 +135,7 @@
                 destination: line.destination,
                 platform: line.platform,
                 notice,
-                duration: line.duration
+                removeAfter: removeAfter.getTime() // Hinzufügen der Zeit, zu der der Zug verschwindet
               });
             }
           }
@@ -185,3 +177,4 @@
   </script>
 </body>
 </html>
+
