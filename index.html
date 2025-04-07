@@ -104,43 +104,54 @@
       return `${pad(h)}:${pad(m)}`;
     }
 
-    function getDepartures() {
-      const now = new Date();
-      const currentDay = now.getDay();
-      const departures = [];
+function getDepartures() {
+  const now = new Date();
+  const currentDay = now.getDay();
+  const departures = [];
 
-      for (let i = -15; i < 180; i++) {
-        const date = new Date(now.getTime() + i * 60000);
-        const h = date.getHours();
-        const m = date.getMinutes();
+  for (let i = -15; i < 180; i++) {
+    const date = new Date(now.getTime() + i * 60000);
+    const h = date.getHours();
+    const m = date.getMinutes();
 
-        for (const line of lines) {
-          if ((line.weekdayOnly && currentDay === 0) || h < line.from || h > line.to) continue;
-          if (m === line.minute) {
-            let notice = '';
-            if (line.type === 'RE1' && line.destination === 'Bellinzona') {
-              const target = new Date(date);
-              const minsBefore = (target - now) / 60000;
-              if (minsBefore <= 15 && minsBefore > 10) notice = 'ca. +3‘';
-              if (minsBefore <= 10) notice = 'ca. +4‘';
-            }
-            const durationKey = line.type + (line.destination.includes('Bellinzona') ? '-Bellinzona' : line.destination.includes('Chur') ? '-Chur' : '');
-            const lifetime = durations[durationKey] ?? durations[line.type] ?? 60;
-            const removeAfter = new Date(date.getTime() + lifetime * 1000);
+    for (const line of lines) {
+      if ((line.weekdayOnly && currentDay === 0) || h < line.from || h > line.to) continue;
+      if (m === line.minute) {
+        let notice = '';
+        let delayMinutes = 0;
 
-            if (removeAfter > now) {
-              departures.push({
-                time: formatTime(h, m),
-                line: line.type,
-                destination: line.destination,
-                platform: line.platform,
-                notice
-              });
-            }
+        if (line.type === 'RE1' && line.destination === 'Bellinzona') {
+          const plannedTime = new Date(date);
+          const minsBefore = (plannedTime - now) / 60000;
+          if (minsBefore <= 15 && minsBefore > 10) {
+            notice = 'ca. +3‘';
+            delayMinutes = 3;
+          } else if (minsBefore <= 10) {
+            notice = 'ca. +4‘';
+            delayMinutes = 4;
           }
         }
+
+        const durationKey = line.type + (line.destination.includes('Bellinzona') ? '-Bellinzona' : line.destination.includes('Chur') ? '-Chur' : '');
+        const baseLifetime = durations[durationKey] ?? durations[line.type] ?? 60;
+        const removeAfter = new Date(date.getTime() + (delayMinutes * 60_000) + baseLifetime * 1000);
+
+        if (removeAfter > now) {
+          departures.push({
+            time: formatTime(h, m),
+            line: line.type,
+            destination: line.destination,
+            platform: line.platform,
+            notice
+          });
+        }
       }
-      return departures.slice(0, 8);
+    }
+  }
+
+  return departures.slice(0, 8);
+}
+
     }
 
     function updateClock() {
