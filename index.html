@@ -71,30 +71,34 @@
     <tbody id="departures"></tbody>
   </table>
   <script>
-    const lines = [
-      { type: 'RE1', minute: 37, from: 5, to: 20, destination: 'Biasca - Bodio TI - Lavorgo - Airolo', platform: '2', delayWindow: [15, 10], delays: ['ca. +3‘', 'ca. +4‘'] },
-      { type: 'RE1', minute: 19, from: 7, to: 22, destination: 'Bellinzona', platform: '2' },
-      { type: 'S1', minute: 29, from: 5, to: 23, destination: 'Lumino TI - San Vittore - Roveredo GR - Mesocco', platform: '13' },
-      { type: 'S1', minute: 57, from: 5, to: 23, destination: 'Bellinzona', platform: '11' },
-      { type: 'S2', minute: 8, from: 7, to: 18, destination: 'Roveredo GR - Grono', platform: '12' },
-      { type: 'S2', minute: 50, from: 7, to: 18, destination: 'Bellinzona', platform: '11' },
-      { type: 'RE2', minute: 24, from: 6, to: 20, destination: 'Roveredo GR - Grono - Mesocco - Chur', platform: '12' },
-      { type: 'IR13', minute: 59, from: 5, to: 19, destination: 'Mesocco - San Bernardino - Andeer - Chur', platform: '12' },
-      { type: 'IR13', minute: 00, from: 7, to: 21, destination: 'Bellinzona', platform: '13' },
-      { type: 'IR13', minute: 57, from: 20, to: 21, destination: 'Mesocco - San - Bernardino - Andeer - Chur', platform: '12' },
-      { type: 'IR13', minute: 07, from: 22, to: 23, destination: 'Bellinzona', platform: '13' },
-      { type: 'RE2', minute: 34, from: 6, to: 22, destination: 'Bellinzona', platform: '11' },
-    ];
-
-    const durations = {
-      'RE1': 50,
-      'S1': 80,
-      'S2': 65,
-      'IR13-Bellinzona': 95,
-      'IR13-Chur': 50,
-      'RE2-Bellinzona': 50,
-      'RE2-Chur': 50
+    // Offset-Delays für jede Verbindung
+    const offsetDelays = {
+      RE1_Airolo: 56, // in Sekunden
+      RE1_Bellinzona: 53, // in Sekunden
+      RE2_Bellinzona: 91, // in Sekunden (1min31sec)
+      RE2_Chur: 62, // in Sekunden (1min02sec)
+      S1_Mesocco: 66, // in Sekunden (1min06sec)
+      S1_Bellinzona: 82, // in Sekunden (1min22sec)
+      S2_Bellinzona: 87, // in Sekunden (1min27sec)
+      S2_Grono: 61, // in Sekunden (1min01sec)
+      IR13_Chur: 41, // in Sekunden
+      IR13_Bellinzona: 71, // in Sekunden
     };
+
+    const lines = [
+      { type: 'RE1', minute: 37, from: 5, to: 20, destination: 'Biasca - Bodio TI - Lavorgo - Airolo', platform: '2', offsetDelayKey: 'RE1_Airolo' },
+      { type: 'RE1', minute: 19, from: 7, to: 22, destination: 'Bellinzona', platform: '2', delayWindow: [15, 10], delays: ['ca. +3‘', 'ca. +4‘'], delayMinutes: [3, 4], offsetDelayKey: 'RE1_Bellinzona' },
+      { type: 'S1', minute: 29, from: 5, to: 23, destination: 'Lumino TI - San Vittore - Roveredo GR - Mesocco', platform: '13', offsetDelayKey: 'S1_Mesocco' },
+      { type: 'S1', minute: 58, from: 5, to: 23, destination: 'Bellinzona', platform: '11', offsetDelayKey: 'S1_Bellinzona' },
+      { type: 'S2', minute: 8, onlyHours: [7, 8, 17, 18], destination: 'Roveredo GR - Grono', platform: '12', offsetDelayKey: 'S2_Grono' },
+      { type: 'S2', minute: 50, onlyHours: [7, 8, 17, 18], destination: 'Bellinzona', platform: '14', offsetDelayKey: 'S2_Bellinzona' },
+      { type: 'RE2', minute: 24, from: 6, to: 20, destination: 'Roveredo GR - Grono - Mesocco - Chur', platform: '12', offsetDelayKey: 'RE2_Bellinzona' },
+      { type: 'IR13', minute: 59, from: 5, to: 19, destination: 'Mesocco - San Bernardino - Andeer - Chur', platform: '12', offsetDelayKey: 'IR13_Chur' },
+      { type: 'IR13', minute: 59, from: 7, to: 21, destination: 'Bellinzona', platform: '13', offsetDelayKey: 'IR13_Bellinzona' },
+      { type: 'IR13', minute: 57, from: 20, to: 21, destination: 'Mesocco - San - Bernardino - Andeer - Chur', platform: '12', offsetDelayKey: 'IR13_Chur' },
+      { type: 'IR13', minute: 6, from: 22, to: 23, destination: 'Bellinzona', platform: '13', offsetDelayKey: 'IR13_Bellinzona' },
+      { type: 'RE2', minute: 34, from: 6, to: 22, destination: 'Bellinzona', platform: '11', offsetDelayKey: 'RE2_Bellinzona' },
+    ];
 
     function pad(n) {
       return n.toString().padStart(2, '0');
@@ -115,18 +119,28 @@
         const m = date.getMinutes();
 
         for (const line of lines) {
+          if (line.onlyHours && !line.onlyHours.includes(h)) continue;
           if ((line.weekdayOnly && currentDay === 0) || h < line.from || h > line.to) continue;
           if (m === line.minute) {
             let notice = '';
-            if (line.type === 'RE1' && line.destination === 'Bellinzona') {
+            let delayInMin = 0;
+
+            const isRE1Bellinzona = line.type === 'RE1' && line.destination.includes('Bellinzona');
+
+            if (isRE1Bellinzona && line.delayWindow && line.delays && line.delayMinutes) {
               const target = new Date(date);
               const minsBefore = (target - now) / 60000;
-              if (minsBefore <= 15 && minsBefore > 10) notice = 'ca. +3‘';
-              if (minsBefore <= 10) notice = 'ca. +4‘';
+              if (minsBefore <= line.delayWindow[0] && minsBefore > line.delayWindow[1]) {
+                notice = line.delays[0];
+                delayInMin = line.delayMinutes[0];
+              } else if (minsBefore <= line.delayWindow[1]) {
+                notice = line.delays[1];
+                delayInMin = line.delayMinutes[1];
+              }
             }
-            const durationKey = line.type + (line.destination.includes('Bellinzona') ? '-Bellinzona' : line.destination.includes('Chur') ? '-Chur' : '');
-            const lifetime = durations[durationKey] ?? durations[line.type] ?? 60;
-            const removeAfter = new Date(date.getTime() + lifetime * 1000);
+
+            const offsetDelaySec = offsetDelays[line.offsetDelayKey] || 0;
+            const removeAfter = new Date(date.getTime() + (offsetDelaySec / 60 + delayInMin) * 60000);
 
             if (removeAfter > now) {
               departures.push({
@@ -134,8 +148,7 @@
                 line: line.type,
                 destination: line.destination,
                 platform: line.platform,
-                notice,
-                removeAfter: removeAfter.getTime() // Hinzufügen der Zeit, zu der der Zug verschwindet
+                notice
               });
             }
           }
@@ -177,4 +190,5 @@
   </script>
 </body>
 </html>
+
 
